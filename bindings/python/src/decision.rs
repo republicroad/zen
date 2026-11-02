@@ -11,6 +11,7 @@ use pyo3_async_runtimes::tokio::get_current_locals;
 use pyo3_async_runtimes::tokio::re_exports::runtime::Runtime;
 use serde_json::Value;
 use zen_engine::Decision;
+use zen_expression::Variable;
 
 #[pyclass]
 #[pyo3(name = "ZenDecision")]
@@ -24,19 +25,25 @@ impl From<Decision> for PyZenDecision {
 
 #[pymethods]
 impl PyZenDecision {
-    #[pyo3(signature = (ctx, opts=None))]
+    #[pyo3(signature = (ctx, opts=None, execution_context=None))]
     pub fn evaluate(
         &self,
         py: Python,
         ctx: PyVariable,
         opts: Option<PyZenEvaluateOptions>,
+        execution_context: Option<PyVariable>,
     ) -> PyResult<Py<PyAny>> {
         let options = opts.unwrap_or_default();
+        let execution_context = execution_context.map(|v| v.into_inner());
         let decision = self.0.clone();
 
         let rt = Runtime::new()?;
         let result = rt
-            .block_on(decision.evaluate_with_opts(ctx.into_inner(), options.into()))
+            .block_on(decision.evaluate_with_request(
+                ctx.into_inner(),
+                options.into(),
+                execution_context,
+            ))
             .map_err(|e| {
                 anyhow!(serde_json::to_string(e.as_ref()).unwrap_or_else(|_| e.to_string()))
             })?;
@@ -44,15 +51,19 @@ impl PyZenDecision {
         crate::convert::response_to_py(py, result)
     }
 
-    #[pyo3(signature = (ctx, opts=None))]
+    #[pyo3(signature = (ctx, opts=None, execution_context=None))]
     pub fn async_evaluate<'py>(
         &'py self,
         py: Python<'py>,
         ctx: PyValue,
         opts: Option<PyZenEvaluateOptions>,
+        execution_context: Option<PyVariable>,
     ) -> PyResult<Py<PyAny>> {
         let context: Value = ctx.0;
         let options = opts.unwrap_or_default();
+        // Variable is !Send — carry it across spawn_pinned as a serde JSON value and
+        // convert back inside the closure
+        let execution_context: Option<Value> = execution_context.map(|v| v.0.to_value());
 
         let decision = self.0.clone();
         let result = tokio::future_into_py_with_locals(py, get_current_locals(py)?, async move {
@@ -60,8 +71,9 @@ impl PyZenDecision {
                 .spawn_pinned(move || async move {
                     let context =
                         zen_engine::Variable::try_from_value(context).map_err(|e| anyhow!(e))?;
+                    let execution_context = execution_context.map(zen_engine::Variable::from);
                     decision
-                        .evaluate_with_opts(context, options.into())
+                        .evaluate_with_request(context, options.into(), execution_context)
                         .await
                         .map(crate::convert::PortableResponse::build)
                         .map_err(|e| {

@@ -142,7 +142,8 @@ pub use decision_graph::{
     DecisionGraphResponse, DecisionGraphTrace, DecisionGraphValidationError, EvaluationTrace,
 };
 pub use engine::{
-    DecisionEngine, EvaluationOptions, EvaluationSerializedOptions, EvaluationTraceKind,
+    DecisionEngine, EvaluationOptions, EvaluationRequest, EvaluationSerializedOptions,
+    EvaluationTraceKind,
 };
 pub use error::{CompileFailure, ContentKindError, EvaluationError};
 pub use workspace::Workspace;

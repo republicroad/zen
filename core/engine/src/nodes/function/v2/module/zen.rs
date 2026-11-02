@@ -77,6 +77,10 @@ impl RuntimeListener for ZenListener {
                                         http_handler: http_handler.clone(),
                                         ..Default::default()
                                     },
+                                    // v1 limitation: function module subtrees do not propagate the
+                                    // execution context (ctx is the rquickjs scope; requires a
+                                    // module-level capture channel)
+                                    execution_context: None,
                                 })
                                 .or_throw(&ctx)?;
 

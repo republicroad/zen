@@ -40,6 +40,18 @@ pub struct EvaluationOptions {
     pub max_depth: u8,
 }
 
+/// Explicit evaluation request: input, evaluation options, and a request-scoped
+/// execution context in one struct. The execution context is injected into every
+/// custom node handler request (`CustomNodeRequest::execution_context`) and stays
+/// invisible to graph expressions (excluded from input views, results, and traces).
+/// Host-owned and single-source per evaluation.
+#[derive(Debug, Clone, Default)]
+pub struct EvaluationRequest {
+    pub input: Variable,
+    pub options: EvaluationOptions,
+    pub execution_context: Option<Variable>,
+}
+
 impl Default for EvaluationOptions {
     fn default() -> Self {
         Self {
@@ -172,6 +184,63 @@ impl DecisionEngine {
     {
         self.evaluate_with_opts(key, context, Default::default())
             .await
+    }
+
+    /// Evaluates a decision through loader using a key with an explicit evaluation request
+    /// (input + options + execution context). Execution context is injected into every
+    /// custom node handler request and stays invisible to graph expressions.
+    pub async fn evaluate_with_request<K>(
+        &self,
+        key: K,
+        request: EvaluationRequest,
+    ) -> Result<DecisionGraphResponse, Box<EvaluationError>>
+    where
+        K: AsRef<str>,
+    {
+        let key_str = key.as_ref();
+        let EvaluationRequest {
+            input,
+            options,
+            execution_context,
+        } = request;
+        if let Some(set) = self.compiled.load_full() {
+            if let Some(entry) = set.get(key_str) {
+                return match entry {
+                    CompiledEntry::Policy(artifact) => artifact
+                        .evaluate_entry(key_str, input, options.trace)
+                        .map(|r| DecisionGraphResponse {
+                            performance: format!("{:.1?}", r.duration),
+                            result: r.output,
+                            trace: r.trace.map(EvaluationTrace::Policy),
+                        })
+                        .map_err(|e| Box::new(EvaluationError::Policy(e))),
+                    CompiledEntry::Graph(graph) => {
+                        self.decision_from_graph(graph)
+                            .evaluate_with_request(input, options, execution_context)
+                            .await
+                    }
+                };
+            }
+        }
+        let content = self.loader.load(key_str).await?;
+        match content.as_ref() {
+            DecisionContent::Graph(_) => {
+                let decision = self.decision_from_graph_arc(content);
+                decision
+                    .evaluate_with_request(input, options, execution_context)
+                    .await
+            }
+            DecisionContent::Policy(_) => {
+                crate::policy::runtime::evaluate_policy(
+                    &self.loader,
+                    key_str,
+                    content,
+                    input,
+                    options,
+                )
+                .await
+            }
+        }
     }
 
     /// Evaluates a decision through loader using a key with advanced options

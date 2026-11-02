@@ -33,6 +33,8 @@ impl CustomNodeAdapter for NoopCustomNode {
 pub struct CustomNodeRequest {
     pub input: Variable,
     pub node: CustomDecisionNode,
+    /// Request-scoped execution context (injected by the host; invisible to graph expressions)
+    pub execution_context: Option<Variable>,
 }
 
 impl CustomNodeRequest {

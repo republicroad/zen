@@ -10,8 +10,8 @@ use pyo3_async_runtimes::tokio;
 use pyo3_async_runtimes::tokio::get_current_locals;
 use pyo3_async_runtimes::tokio::re_exports::runtime::Runtime;
 use serde_json::Value;
-use zen_expression::Variable;
 use zen_engine::Decision;
+use zen_expression::Variable;
 
 #[pyclass]
 #[pyo3(name = "ZenDecision")]

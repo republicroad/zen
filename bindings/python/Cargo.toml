@@ -2,7 +2,6 @@
 name = "zen-python"
 version = "2.1.6"
 edition = "2021"
-license = "MIT"
 publish = false
 
 [lib]

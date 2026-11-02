@@ -102,10 +102,12 @@ jobs:
           merge-multiple: true
 
       - name: Publish to private PyPI (Aliyun)
-        # fork 发布：阿里云制品仓库私有源（republicroad/zen 专用）
+        # fork 发布：阿里云制品仓库私有源（republicroad/zen 专用）。
+        # 凭证走环境变量（twine 原生读取）——凭证含特殊字符时严禁经 ${{ secrets }}
+        # 明文替换进脚本（bash 语法注入，已实证：密码含括号致 syntax error）
         run: |
           pip install twine
-          twine upload --skip-existing             --repository-url https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/pypi/repo-tvrur             -u ${{ secrets.ZEN_PYPI_USER }} -p ${{ secrets.ZEN_PYPI_PASS }}             dist/*
+          twine upload --skip-existing             --repository-url https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/pypi/repo-tvrur             dist/*
         env:
-          ZEN_PYPI_USER: ${{ secrets.ZEN_PYPI_USER }}
-          ZEN_PYPI_PASS: ${{ secrets.ZEN_PYPI_PASS }}
+          TWINE_USERNAME: ${{ secrets.ZEN_PYPI_USER }}
+          TWINE_PASSWORD: ${{ secrets.ZEN_PYPI_PASS }}

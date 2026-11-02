@@ -23,6 +23,7 @@ use crate::mt::spawn_worker;
 use crate::safe_result::SafeResult;
 use crate::types::{ZenEngineHandlerRequest, ZenEngineHandlerResponse};
 use zen_engine::loader::{DynamicLoader, LoaderConfig};
+use zen_engine::EvaluationRequest;
 use zen_engine::model::DecisionContent;
 use zen_engine::{
     DecisionEngine, EvaluationOptions, EvaluationSerializedOptions, EvaluationTraceKind,
@@ -249,6 +250,7 @@ impl ZenEngine {
         key: String,
         context: Value,
         opts: Option<ZenEvaluateOptions>,
+        execution_context: Option<Value>,
     ) -> napi::Result<NodeEvalResponse> {
         let graph = self.graph.clone();
         let result = spawn_worker(|| {
@@ -263,8 +265,24 @@ impl ZenEngine {
                 let context = zen_engine::Variable::try_from_value(context).map_err(
                     |e| serde_json::json!({ "type": "ContextError", "source": e.to_string() }),
                 )?;
+                let execution_context = execution_context
+                    .map(zen_engine::Variable::try_from_value)
+                    .transpose()
+                    .map_err(|e| {
+                        serde_json::json!({
+                            "type": "ContextError",
+                            "source": format!("executionContext: {}", e)
+                        })
+                    })?;
                 graph
-                    .evaluate_with_opts(key, context, options)
+                    .evaluate_with_request(
+                        key,
+                        zen_engine::EvaluationRequest {
+                            input: context,
+                            options,
+                            execution_context,
+                        },
+                    )
                     .await
                     .map(|response| NodeEvalResponse::build(response, mode))
                     .map_err(|e| {
@@ -323,8 +341,11 @@ impl ZenEngine {
         key: String,
         context: Value,
         opts: Option<ZenEvaluateOptions>,
+        execution_context: Option<Value>,
     ) -> SafeResult<NodeEvalResponse> {
-        self.evaluate(key, context, opts).await.into()
+        self.evaluate(key, context, opts, execution_context)
+            .await
+            .into()
     }
 
     #[napi(

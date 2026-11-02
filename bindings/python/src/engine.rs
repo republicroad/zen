@@ -16,6 +16,7 @@ use pyo3_async_runtimes::{tokio, TaskLocals};
 use pythonize::{depythonize, pythonize};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use zen_engine::EvaluationRequest;
 use zen_engine::loader::{DynamicLoader, LoaderConfig};
 use zen_engine::{DecisionEngine, EvaluationOptions};
 
@@ -168,21 +169,22 @@ impl PyZenEngine {
         })
     }
 
-    #[pyo3(signature = (key, ctx, opts=None))]
+    #[pyo3(signature = (key, ctx, opts=None, execution_context=None))]
     pub fn evaluate(
         &self,
         py: Python,
         key: &str,
         ctx: PyVariable,
         opts: Option<PyZenEvaluateOptions>,
+        execution_context: Option<PyVariable>,
     ) -> PyResult<Py<PyAny>> {
         let options = opts.unwrap_or_default();
-        let result = block_on(self.engine.evaluate_with_opts(
-            key,
-            ctx.into_inner(),
-            options.into(),
-        ))
-        .map_err(|e| {
+        let request = EvaluationRequest {
+            input: ctx.into_inner(),
+            options: options.into(),
+            execution_context: execution_context.map(|v| v.into_inner()),
+        };
+        let result = block_on(self.engine.evaluate_with_request(key, request)).map_err(|e| {
             anyhow!(serde_json::to_string(e.as_ref()).unwrap_or_else(|_| e.to_string()))
         })?;
 

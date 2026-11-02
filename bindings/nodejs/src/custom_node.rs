@@ -58,6 +58,7 @@ impl CustomNodeAdapter for CustomNode {
                 .call_async(ZenEngineHandlerRequest {
                     input: request.input.to_value(),
                     node: node_data,
+                    execution_context: request.execution_context.map(|v| v.to_value()),
                 })
                 .await
                 .map_err(|err| NodeError {

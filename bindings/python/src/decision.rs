@@ -24,19 +24,25 @@ impl From<Decision> for PyZenDecision {
 
 #[pymethods]
 impl PyZenDecision {
-    #[pyo3(signature = (ctx, opts=None))]
+    #[pyo3(signature = (ctx, opts=None, execution_context=None))]
     pub fn evaluate(
         &self,
         py: Python,
         ctx: PyVariable,
         opts: Option<PyZenEvaluateOptions>,
+        execution_context: Option<PyVariable>,
     ) -> PyResult<Py<PyAny>> {
         let options = opts.unwrap_or_default();
+        let execution_context = execution_context.map(|v| v.into_inner());
         let decision = self.0.clone();
 
         let rt = Runtime::new()?;
         let result = rt
-            .block_on(decision.evaluate_with_opts(ctx.into_inner(), options.into()))
+            .block_on(decision.evaluate_with_request(
+                ctx.into_inner(),
+                options.into(),
+                execution_context,
+            ))
             .map_err(|e| {
                 anyhow!(serde_json::to_string(e.as_ref()).unwrap_or_else(|_| e.to_string()))
             })?;
@@ -44,15 +50,17 @@ impl PyZenDecision {
         crate::convert::response_to_py(py, result)
     }
 
-    #[pyo3(signature = (ctx, opts=None))]
+    #[pyo3(signature = (ctx, opts=None, execution_context=None))]
     pub fn async_evaluate<'py>(
         &'py self,
         py: Python<'py>,
         ctx: PyValue,
         opts: Option<PyZenEvaluateOptions>,
+        execution_context: Option<PyVariable>,
     ) -> PyResult<Py<PyAny>> {
         let context: Value = ctx.0;
         let options = opts.unwrap_or_default();
+        let execution_context: Option<Variable> = execution_context.map(|v| v.0);
 
         let decision = self.0.clone();
         let result = tokio::future_into_py_with_locals(py, get_current_locals(py)?, async move {
@@ -61,7 +69,7 @@ impl PyZenDecision {
                     let context =
                         zen_engine::Variable::try_from_value(context).map_err(|e| anyhow!(e))?;
                     decision
-                        .evaluate_with_opts(context, options.into())
+                        .evaluate_with_request(context, options.into(), execution_context)
                         .await
                         .map(crate::convert::PortableResponse::build)
                         .map_err(|e| {

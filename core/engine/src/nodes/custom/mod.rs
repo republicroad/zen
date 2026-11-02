@@ -22,6 +22,7 @@ impl NodeHandler for CustomNodeHandler {
     async fn handle(&self, ctx: NodeContext<Self::NodeData, Self::TraceData>) -> NodeResult {
         let custom_node_request = CustomNodeRequest {
             input: ctx.input_with_nodes(),
+            execution_context: ctx.execution_context.clone(),
             node: CustomDecisionNode {
                 id: ctx.id.clone(),
                 name: ctx.name.clone(),

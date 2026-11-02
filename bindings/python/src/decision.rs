@@ -61,7 +61,8 @@ impl PyZenDecision {
     ) -> PyResult<Py<PyAny>> {
         let context: Value = ctx.0;
         let options = opts.unwrap_or_default();
-        let execution_context: Option<Variable> = execution_context.map(|v| v.0);
+        // Variable 非 Send——跨 spawn_pinned 以 serde Value 携带，闭包内转回
+        let execution_context: Option<Value> = execution_context.map(|v| v.0.to_value());
 
         let decision = self.0.clone();
         let result = tokio::future_into_py_with_locals(py, get_current_locals(py)?, async move {
@@ -69,6 +70,10 @@ impl PyZenDecision {
                 .spawn_pinned(move || async move {
                     let context =
                         zen_engine::Variable::try_from_value(context).map_err(|e| anyhow!(e))?;
+                    let execution_context = execution_context
+                        .map(zen_engine::Variable::from)
+                        .transpose()
+                        .map_err(|e| anyhow!(e))?;
                     decision
                         .evaluate_with_request(context, options.into(), execution_context)
                         .await

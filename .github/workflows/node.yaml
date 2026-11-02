@@ -362,6 +362,11 @@ jobs:
         # userconfig 在场时 ~/.npmrc 不被读取,双写只为 npm 侧(lerna/root 包)兜底
         run: |
           NPMRC="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          printf 'fetch-retries=6
+fetch-retry-mintimeout=30000
+fetch-retry-maxtimeout=180000
+fetch-timeout=600000
+' >> "$NPMRC"
           echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$NPMRC"
           echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$HOME/.npmrc"
           sed 's/_authToken=.*/_authToken=***/' "$NPMRC"

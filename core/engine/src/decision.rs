@@ -243,7 +243,10 @@ mod execution_context_tests {
         let captured = seen.lock().unwrap();
         assert_eq!(captured.len(), 1, "handler must be called exactly once");
         let seen_ctx = captured[0].as_ref().expect("execution_context is Some");
-        assert_eq!(seen_ctx["tenantId"], json!("t-1"), "must reach the handler unchanged");
+        assert_eq!(
+            seen_ctx["tenantId"], json!("t-1"),
+            "must reach the handler unchanged"
+        );
         assert_eq!(seen_ctx["traceId"], json!("tr-9"));
     }
 
@@ -259,6 +262,9 @@ mod execution_context_tests {
 
         let captured = seen.lock().unwrap();
         assert_eq!(captured.len(), 1);
-        assert!(captured[0].is_none(), "handler receives None when no execution context is provided");
+        assert!(
+            captured[0].is_none(),
+            "handler receives None when no execution context is provided"
+        );
     }
 }

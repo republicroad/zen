@@ -107,7 +107,7 @@ jobs:
         # 凭证走环境变量（twine 原生读取）——凭证含特殊字符时严禁经 ${{ secrets }}
         # 明文替换进脚本（bash 语法注入，已实证：密码含括号致 syntax error）
         run: |
-          pip install "twine<7"
+          pip install "twine==6.1.0"
           twine upload             --repository-url https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/pypi/repo-tvrur             dist/*
         env:
           TWINE_USERNAME: ${{ secrets.ZEN_PYPI_USER }}

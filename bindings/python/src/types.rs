@@ -34,11 +34,14 @@ impl From<BaseCustomDecisionNode> for CustomDecisionNode {
 pub struct PyNodeRequest {
     inner_node: CustomDecisionNode,
     inner_input: Value,
+    inner_execution_context: Option<Value>,
 
     #[pyo3(get)]
     pub input: Py<PyAny>,
     #[pyo3(get)]
     pub node: Py<PyAny>,
+    #[pyo3(get)]
+    pub execution_context: Py<PyAny>,
 }
 
 impl PyNodeRequest {
@@ -46,12 +49,20 @@ impl PyNodeRequest {
         let inner_node = value.node.into();
         let node_val = serde_json::to_value(&inner_node).unwrap();
 
+        let execution_context = value
+            .execution_context
+            .as_ref()
+            .map(|v| v.to_value())
+            .unwrap_or(serde_json::Value::Null);
+
         Ok(Self {
             input: value_to_object(py, &value.input.to_value())?.unbind(),
             node: value_to_object(py, &node_val)?.unbind(),
+            execution_context: value_to_object(py, &execution_context)?.unbind(),
 
             inner_input: value.input.to_value(),
             inner_node,
+            inner_execution_context: value.execution_context.as_ref().map(|v| v.to_value()),
         })
     }
 }

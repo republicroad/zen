@@ -30,6 +30,9 @@ where
     pub node: NodeData,
     pub input: Variable,
     pub nodes: Option<Variable>,
+    /// Request-scoped execution context (injected by the host via evaluate): readable
+    /// only by custom node handlers, invisible to graph expressions
+    pub execution_context: Option<Variable>,
     pub trace: Option<RefCell<TraceData>>,
     pub extensions: NodeHandlerExtensions,
     pub iteration: u8,
@@ -60,6 +63,7 @@ where
             name: base.name,
             input: base.input,
             nodes: base.nodes,
+            execution_context: base.execution_context,
             extensions: base.extensions,
             iteration: base.iteration,
             trace: base.config.trace.then(|| Default::default()),
@@ -319,6 +323,8 @@ pub struct NodeContextBase {
     pub name: Arc<str>,
     pub input: Variable,
     pub nodes: Option<Variable>,
+    /// Request-scoped execution context
+    pub execution_context: Option<Variable>,
     pub iteration: u8,
     pub extensions: NodeHandlerExtensions,
     pub config: NodeContextConfig,
@@ -395,6 +401,7 @@ where
             name: value.name,
             input: value.input,
             nodes: value.nodes,
+            execution_context: value.execution_context,
             extensions: value.extensions,
             iteration: value.iteration,
             config: value.config,

@@ -44,6 +44,8 @@ pub struct DecisionGraphConfig {
     pub iteration: u8,
     pub max_depth: u8,
     pub extensions: NodeHandlerExtensions,
+    /// Request-scoped execution context: injected into every custom node handler request; invisible to graph expressions
+    pub execution_context: Option<Variable>,
 }
 
 impl DecisionGraph {
@@ -147,6 +149,7 @@ impl DecisionGraph {
             name: node.name.clone(),
             input,
             nodes,
+            execution_context: self.config.execution_context.clone(),
             extensions: self.config.extensions.clone(),
             iteration: self.config.iteration,
             trace: match self.config.trace {

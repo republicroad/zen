@@ -14,7 +14,8 @@ classifiers = [
 description = "Open-Source Business Rules Engine"
 readme = "README.md"
 authors = [{ name = "GoRules Team", email = "hi@gorules.io" }]
-license = { file = "LICENSE" }
+# fork：license-file 元数据（Metadata 2.4/PEP 639）被阿里云 PyPI 后端拒绝，改 SPDX 经典字段
+license = "MIT"
 
 keywords = ["gorules",
     "zen-engine",

@@ -87,6 +87,7 @@ impl From<CustomDecisionNode> for DecisionNode {
 pub struct ZenEngineHandlerRequest {
     pub(crate) input: Value,
     pub(crate) node: DecisionNode,
+    pub(crate) execution_context: Option<Value>,
 }
 
 #[napi]

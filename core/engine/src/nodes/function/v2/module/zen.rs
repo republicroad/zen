@@ -77,6 +77,9 @@ impl RuntimeListener for ZenListener {
                                         http_handler: http_handler.clone(),
                                         ..Default::default()
                                     },
+                                    // v1 限制：function 模块子树暂不透传执行上下文
+                                    // （ctx 为 rquickjs 作用域，需模块级捕获通道，见提案 D2 备注）
+                                    execution_context: None,
                                 })
                                 .or_throw(&ctx)?;
 

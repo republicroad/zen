@@ -30,6 +30,9 @@ where
     pub node: NodeData,
     pub input: Variable,
     pub nodes: Option<Variable>,
+    /// 请求级执行上下文（宿主经 evaluate 注入）：仅自定义节点 handler 可读，
+    /// 对图表达式不可见（不进输入视图/结果/trace）
+    pub execution_context: Option<Variable>,
     pub trace: Option<RefCell<TraceData>>,
     pub extensions: NodeHandlerExtensions,
     pub iteration: u8,
@@ -60,6 +63,7 @@ where
             name: base.name,
             input: base.input,
             nodes: base.nodes,
+            execution_context: base.execution_context,
             extensions: base.extensions,
             iteration: base.iteration,
             trace: base.config.trace.then(|| Default::default()),
@@ -319,6 +323,8 @@ pub struct NodeContextBase {
     pub name: Arc<str>,
     pub input: Variable,
     pub nodes: Option<Variable>,
+    /// 请求级执行上下文（执行上下文提案，见 make_isolate 旁注释的可见性边界）
+    pub execution_context: Option<Variable>,
     pub iteration: u8,
     pub extensions: NodeHandlerExtensions,
     pub config: NodeContextConfig,
@@ -395,6 +401,7 @@ where
             name: value.name,
             input: value.input,
             nodes: value.nodes,
+            execution_context: value.execution_context,
             extensions: value.extensions,
             iteration: value.iteration,
             config: value.config,

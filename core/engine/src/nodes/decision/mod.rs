@@ -73,6 +73,7 @@ impl NodeHandler for DecisionNodeHandler {
                 trace: ctx.config.trace,
                 iteration: ctx.iteration + 1,
                 max_depth: ctx.config.max_depth,
+                execution_context: ctx.execution_context.clone(),
             })
             .node_context(&ctx)?;
 

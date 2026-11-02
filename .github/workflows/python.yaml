@@ -100,6 +100,7 @@ jobs:
         with:
           pattern: wheels-*
           merge-multiple: true
+          path: dist
 
       - name: Publish to private PyPI (Aliyun)
         # fork 发布：阿里云制品仓库私有源（republicroad/zen 专用）。

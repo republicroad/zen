@@ -229,22 +229,20 @@ impl DecisionEngine {
                     .evaluate_with_request(input, options, execution_context)
                     .await
             }
-            DecisionContent::Policy(_) => {
-                crate::policy::runtime::evaluate_policy(
-                    &self.loader,
-                    key_str,
-                    content,
-                    input,
-                    options,
-                )
-                .await
-                .map(|r| DecisionGraphResponse {
-                    performance: format!("{:.1?}", r.duration),
-                    result: r.output,
-                    trace: r.trace.map(EvaluationTrace::Policy),
-                })
-                .map_err(|e| Box::new(EvaluationError::Policy(e)))
-            }
+            DecisionContent::Policy(_) => crate::policy::runtime::evaluate_policy(
+                &self.loader,
+                key_str,
+                content,
+                input,
+                options,
+            )
+            .await
+            .map(|r| DecisionGraphResponse {
+                performance: format!("{:.1?}", r.duration),
+                result: r.output,
+                trace: r.trace.map(EvaluationTrace::Policy),
+            })
+            .map_err(|e| Box::new(EvaluationError::Policy(e))),
         }
     }
 

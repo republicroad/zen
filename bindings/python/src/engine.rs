@@ -16,8 +16,8 @@ use pyo3_async_runtimes::{tokio, TaskLocals};
 use pythonize::{depythonize, pythonize};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use zen_engine::EvaluationRequest;
 use zen_engine::loader::{DynamicLoader, LoaderConfig};
+use zen_engine::EvaluationRequest;
 use zen_engine::{DecisionEngine, EvaluationOptions};
 
 #[pyclass]

@@ -23,8 +23,8 @@ use crate::mt::spawn_worker;
 use crate::safe_result::SafeResult;
 use crate::types::{ZenEngineHandlerRequest, ZenEngineHandlerResponse};
 use zen_engine::loader::{DynamicLoader, LoaderConfig};
-use zen_engine::EvaluationRequest;
 use zen_engine::model::DecisionContent;
+use zen_engine::EvaluationRequest;
 use zen_engine::{
     DecisionEngine, EvaluationOptions, EvaluationSerializedOptions, EvaluationTraceKind,
 };

@@ -1,5 +1,7 @@
 use crate::decision_graph::graph::{DecisionGraph, DecisionGraphConfig, DecisionGraphResponse};
-use crate::engine::{EvaluationOptions, EvaluationRequest, EvaluationSerializedOptions, EvaluationTraceKind};
+use crate::engine::{
+    EvaluationOptions, EvaluationRequest, EvaluationSerializedOptions, EvaluationTraceKind,
+};
 use crate::loader::{DynamicLoader, NoopLoader};
 use crate::model::GraphContent;
 use crate::nodes::custom::{DynamicCustomNode, NoopCustomNode};

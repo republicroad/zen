@@ -75,20 +75,5 @@ jobs:
       - name: Install Rust
         run: rustup update stable
 
-      - name: Login to Crates.IO
-        run: cargo login ${{ secrets.CRATES_TOKEN }}
-
-      - name: Publish Macros
-        run: cd core/macros && cargo publish --locked
-
-      - name: Publish Types
-        run: cd core/types && cargo publish --locked
-
-      - name: Publish Expression
-        run: cd core/expression && cargo publish --locked
-
-      - name: Publish Template
-        run: cd core/template && cargo publish --locked
-
-      - name: Publish Engine
-        run: cd core/engine && cargo publish --locked
+      # crates publish 已移除：fork 无私有 crates 源；Rust crate 仅服务 Rust 用户，
+      # Node/Python 包已内嵌编译产物（verdict/zen-udf 经 npm/PyPI 消费，不受影响）

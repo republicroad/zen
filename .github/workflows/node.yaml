@@ -332,7 +332,8 @@ jobs:
           check-latest: true
           cache: yarn
           cache-dependency-path: 'bindings/nodejs/yarn.lock'
-          registry-url: 'https://registry.npmjs.org'
+          # fork 发布：阿里云制品仓库私有源（republicroad/zen 专用）
+          registry-url: ${{ secrets.ZEN_NPM_REGISTRY }}
           # Organisation
           scope: '@gorules'
 
@@ -369,8 +370,8 @@ jobs:
         shell: bash
 
       - name: Lerna publish
-        run: yarn lerna publish from-package --dist-tag ${{ contains(github.ref, '-beta') && 'beta' || 'latest' }} --no-verify-access --yes
+        run: yarn lerna publish from-package --dist-tag ${{ contains(github.ref, '-beta') && 'beta' || 'latest' }} --registry ${{ secrets.ZEN_NPM_REGISTRY }} --no-verify-access --yes
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.ZEN_NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.ZEN_NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

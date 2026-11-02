@@ -101,10 +101,11 @@ jobs:
           pattern: wheels-*
           merge-multiple: true
 
-      - name: Publish to PyPI
-        uses: PyO3/maturin-action@v1
+      - name: Publish to private PyPI (Aliyun)
+        # fork 发布：阿里云制品仓库私有源（republicroad/zen 专用）
+        run: |
+          pip install twine
+          twine upload --skip-existing             --repository-url https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/pypi/repo-tvrur             -u ${{ secrets.ZEN_PYPI_USER }} -p ${{ secrets.ZEN_PYPI_PASS }}             dist/*
         env:
-          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        with:
-          command: upload
-          args: --skip-existing *
+          ZEN_PYPI_USER: ${{ secrets.ZEN_PYPI_USER }}
+          ZEN_PYPI_PASS: ${{ secrets.ZEN_PYPI_PASS }}

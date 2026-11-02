@@ -70,10 +70,7 @@ impl PyZenDecision {
                 .spawn_pinned(move || async move {
                     let context =
                         zen_engine::Variable::try_from_value(context).map_err(|e| anyhow!(e))?;
-                    let execution_context = execution_context
-                        .map(zen_engine::Variable::from)
-                        .transpose()
-                        .map_err(|e| anyhow!(e))?;
+                    let execution_context = execution_context.map(zen_engine::Variable::from);
                     decision
                         .evaluate_with_request(context, options.into(), execution_context)
                         .await

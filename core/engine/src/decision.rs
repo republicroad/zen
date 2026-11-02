@@ -1,7 +1,5 @@
 use crate::decision_graph::graph::{DecisionGraph, DecisionGraphConfig, DecisionGraphResponse};
-use crate::engine::{
-    EvaluationOptions, EvaluationRequest, EvaluationSerializedOptions, EvaluationTraceKind,
-};
+use crate::engine::{EvaluationOptions, EvaluationSerializedOptions, EvaluationTraceKind};
 use crate::loader::{DynamicLoader, NoopLoader};
 use crate::model::GraphContent;
 use crate::nodes::custom::{DynamicCustomNode, NoopCustomNode};
@@ -178,14 +176,15 @@ mod execution_context_tests {
     use super::*;
     use crate::nodes::custom::{CustomNodeAdapter, CustomNodeRequest};
     use crate::nodes::{NodeError, NodeResult};
-    use serde_json::json;
+    use serde_json::{json, Value};
     use std::future::Future;
     use std::pin::Pin;
     use std::sync::Mutex;
 
+    /// Variable 非 Send（Lrc/RefCell）——捕获面转存 serde Value（Send）
     #[derive(Debug)]
     struct CapturingAdapter {
-        seen: Arc<Mutex<Vec<Option<Variable>>>>,
+        seen: Arc<Mutex<Vec<Option<Value>>>>,
     }
 
     impl CustomNodeAdapter for CapturingAdapter {
@@ -195,7 +194,9 @@ mod execution_context_tests {
         ) -> Pin<Box<dyn Future<Output = NodeResult> + '_>> {
             let seen = self.seen.clone();
             Box::pin(async move {
-                seen.lock().unwrap().push(request.execution_context.clone());
+                seen.lock()
+                    .unwrap()
+                    .push(request.execution_context.map(|v| v.to_value()));
                 // 捕获即止（复用 Noop 语义：Err 结束求值，断言聚焦在捕获面）
                 Err(NodeError {
                     node_id: request.node.id.clone(),
@@ -241,11 +242,9 @@ mod execution_context_tests {
         assert!(outcome.is_err());
         let captured = seen.lock().unwrap();
         assert_eq!(captured.len(), 1, "handler 恰被调用一次");
-        assert_eq!(
-            captured[0].as_ref().map(|v| v["tenantId"].clone()),
-            Some(json!("t-1")),
-            "execution_context 必须原样到达 handler"
-        );
+        let seen_ctx = captured[0].as_ref().expect("execution_context 应为 Some");
+        assert_eq!(seen_ctx["tenantId"], json!("t-1"), "原样到达 handler");
+        assert_eq!(seen_ctx["traceId"], json!("tr-9"));
     }
 
     #[tokio::test]

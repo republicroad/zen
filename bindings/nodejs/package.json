@@ -88,7 +88,7 @@
   },
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/"
   },
   "repository": {
     "type": "git",

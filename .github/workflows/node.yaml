@@ -333,7 +333,7 @@ jobs:
           cache: yarn
           cache-dependency-path: 'bindings/nodejs/yarn.lock'
           # fork 发布：阿里云制品仓库私有源（republicroad/zen 专用）
-          registry-url: ${{ secrets.ZEN_NPM_REGISTRY }}
+          registry-url: 'https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/' 
           # Organisation
           scope: '@gorules'
 
@@ -369,22 +369,19 @@ jobs:
         run: ls ./
         shell: bash
 
-      - name: Configure npm auth (Aliyun)
-        # yarn 1 两个已知限制：①不展开 .npmrc 的 ${VAR} 占位符（npm 才展开）；
-        # ②自定义 registry 的 auth 匹配只按 host，不支持路径级键——
-        # 故写 host 级字面量 token，且双写 userconfig 与 ~/.npmrc 兜底
+      - name: Configure npm auth
+        # yarn 1.22:路径级键可用,且必须与 publishConfig.registry 字符级一致(含尾斜杠);
+        # userconfig 在场时 ~/.npmrc 不被读取,双写只为 npm 侧(lerna/root 包)兜底
         run: |
           NPMRC="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
-          echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$NPMRC"
-          echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/:always-auth=true" >> "$NPMRC"
-          echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$HOME/.npmrc"
-          echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/:always-auth=true" >> "$HOME/.npmrc"
-          echo "--- npmrc 内容（脱敏）---"
-          sed 's/_authToken=.*/_authToken=***/' "$NPMRC" "$HOME/.npmrc" || true
+          echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$NPMRC"
+          echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$HOME/.npmrc"
+          sed 's/_authToken=.*/_authToken=***/' "$NPMRC"
 
       - name: Lerna publish
-        run: yarn lerna publish from-package --dist-tag ${{ contains(github.ref, '-beta') && 'beta' || 'latest' }} --registry ${{ secrets.ZEN_NPM_REGISTRY }} --no-verify-access --yes
+        run: yarn lerna publish from-package --dist-tag ${{ contains(github.ref, '-beta') && 'beta' || 'latest' }} --registry https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/ --no-verify-access --yes
         env:
           NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -57,6 +57,7 @@ jobs:
 
       - name: Remove LICENSE (maturin auto-emits License-File metadata that the Aliyun PyPI backend rejects)
         run: rm -f bindings/python/LICENSE
+        shell: bash
 
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -82,6 +83,7 @@ jobs:
 
       - name: Remove LICENSE (see wheels job)
         run: rm -f bindings/python/LICENSE
+        shell: bash
 
       - name: Build sdist
         uses: PyO3/maturin-action@v1

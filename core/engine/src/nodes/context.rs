@@ -401,6 +401,7 @@ where
             name: value.name,
             input: value.input,
             nodes: value.nodes,
+            execution_context: value.execution_context,
             extensions: value.extensions,
             iteration: value.iteration,
             config: value.config,

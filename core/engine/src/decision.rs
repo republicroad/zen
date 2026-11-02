@@ -176,9 +176,10 @@ mod execution_context_tests {
     //! 执行上下文透传守卫（上游执行上下文提案）：自定义节点 handler 必须收到
     //! evaluate 注入的 execution_context，且宿主单源、每次求值独立。
     use super::*;
-    use crate::nodes::custom::CustomNodeAdapter;
+    use crate::nodes::custom::{CustomNodeAdapter, CustomNodeRequest};
     use crate::nodes::{NodeError, NodeResult};
     use serde_json::json;
+    use std::future::Future;
     use std::pin::Pin;
     use std::sync::Mutex;
 

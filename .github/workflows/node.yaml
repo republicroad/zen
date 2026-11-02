@@ -371,8 +371,13 @@ jobs:
 
       - name: Configure npm auth (Aliyun)
         # yarn 1 不展开 .npmrc 的 ${NODE_AUTH_TOKEN} 占位符（npm 才展开）——
-        # napi prepublish 内部调 yarn publish，故此处写入字面量 token
-        run: echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> ~/.npmrc
+        # napi prepublish 内部调 yarn publish，故此处写入字面量 token；
+        # 写入 setup-node 生成的 userconfig（NPM_CONFIG_USERCONFIG 指向），而非 ~/.npmrc
+        run: |
+          NPMRC="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
+          echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$NPMRC"
+          echo "--- npmrc 内容（脱敏）---"
+          sed 's/_authToken=.*/_authToken=***/' "$NPMRC"
 
       - name: Lerna publish
         run: yarn lerna publish from-package --dist-tag ${{ contains(github.ref, '-beta') && 'beta' || 'latest' }} --registry ${{ secrets.ZEN_NPM_REGISTRY }} --no-verify-access --yes

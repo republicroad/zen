@@ -370,6 +370,14 @@ jobs:
           echo "//sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/:_authToken=${{ secrets.NODE_AUTH_TOKEN }}" >> "$HOME/.npmrc"
           sed 's/_authToken=.*/_authToken=***/' "$NPMRC"
 
+      - name: Reset build modifications (lerna requires clean tree)
+        # 发布内容以 tag 提交为准：还原构建期改动（browser.js 重建差异）并清掉
+        # 未跟踪的 artifacts/，满足 lerna 的干净工作树检查
+        run: |
+          git checkout -- . || true
+          rm -rf ../../artifacts
+        shell: bash
+
       - name: Lerna publish
         run: yarn lerna publish from-package --dist-tag ${{ contains(github.ref, '-beta') && 'beta' || 'latest' }} --registry https://sealweave-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/npm/repo-msggm/ --no-verify-access --yes
         env:

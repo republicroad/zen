@@ -28,7 +28,7 @@
       "wasm32-wasip1"
     ],
     "dtsHeaderFile": "./dts-header.d.ts",
-    "npmClient": "yarn",
+    "npmClient": "npm",
     "wasm": {
       "initialMemory": 1024,
       "maximumMemory": 16384,

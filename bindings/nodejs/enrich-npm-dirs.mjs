@@ -10,9 +10,9 @@ for (const dir of readdirSync(npmRoot)) {
   const target = readme.match(/This is the \*\*(.+?)\*\* binary/)?.[1] ?? dir;
   writeFileSync(
     readmePath,
-    `# \`@gorules/zen-engine-${dir}\`
+    `# \`@republicroad/zen-engine-${dir}\`
 
-This is the **${target}** binary for [\`@gorules/zen-engine\`](https://www.npmjs.com/package/@gorules/zen-engine), the open-source [Node.js rules engine](https://gorules.io/open-source/javascript-rules-engine) from [GoRules](https://gorules.io).
+This is the **${target}** binary for [\`@republicroad/zen-engine\`](https://www.npmjs.com/package/@republicroad/zen-engine), the open-source [Node.js rules engine](https://gorules.io/open-source/javascript-rules-engine) from [GoRules](https://gorules.io).
 
 - [Documentation](https://docs.gorules.io/developers/sdks/nodejs)
 - [GitHub](https://github.com/gorules/zen)
